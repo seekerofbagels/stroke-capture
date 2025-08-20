@@ -27,8 +27,7 @@ class DataImporter:
 
 class InputProcessor:
 
-    def __init__(self,data_importer,input_width,output_width,offset,output_columns=None):
-        self.output_columns = output_columns
+    def __init__(self,input_width,output_width,offset,data_importer=None):
         self.input_width = input_width
         self.output_width = output_width
         self.offset = offset
@@ -40,6 +39,8 @@ class InputProcessor:
         self.output_indices = np.arange(self.total_window_size)[self.output_slice]
         self.data_split_proportion = {'train' : 0.64, 'validate' : 0.16, 'test' : 0.2}
         self.data_importer = data_importer
+        if data_importer == None:
+            self.data_importer = DataImporter()
     
     def __repr__(self):
         return '\n'.join([
@@ -98,7 +99,7 @@ output_width = 1
 offset = 1
 forward_importer = DataImporter(forward_direction=True)
 backward_importer = DataImporter(forward_direction=False)
-ip = InputProcessor(data_importer=backward_importer,input_width=input_width,output_width=output_width,offset=offset,)
+ip = InputProcessor(data_importer=forward_importer,input_width=input_width,output_width=output_width,offset=offset,)
 
 epochs = 20
 def compile_and_fit(model,input_process):
@@ -107,7 +108,6 @@ def compile_and_fit(model,input_process):
                   metrics=[keras.metrics.MeanAbsoluteError()])
     train = input_process.train.cache()
     validate = input_process.validate.cache()
-    test = input_process.test
     history = model.fit(train,epochs=epochs,validation_data=validate)
     return
 
@@ -119,7 +119,7 @@ naive_model = keras.Sequential([
 ])
 
 #compile_and_fit(naive_model,ip)
-#naive_model.save('models/naive_backward.keras')
+#naive_model.save('models/naive.keras')
 
 #loaded_model = keras.models.load_model('models/naive.keras')
 #test = ip.test
